@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Multiple Floor Plans</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 800px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        form {
+            margin-top: 20px;
+        }
+        .custom-file-upload {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            display: inline-block;
+            padding: 10px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .file-item input[type="text"] {
+            margin-left: 10px;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .delete-button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #dc3545;
+            color: white;
+            cursor: pointer;
+        }
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+        .results {
+            margin-top: 30px;
+            text-align: left;
+        }
+        .results table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .results th, .results td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        .results th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Multiple Floor Plans</h1>
+        <label class="custom-file-upload">
+            <input type="file" id="fileInput" multiple>
+            Select Files
+        </label>
+        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+            <div id="fileList" class="file-list"></div>
+            <input type="submit" value="Upload">
+        </form>
+
+        <div class="results" id="results">
+            <!-- Results will be inserted here by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const resultsContainer = document.getElementById('results');
+        let files = [];
+
+        fileInput.addEventListener('change', handleFiles, false);
+
+        function handleFiles() {
+            const newFiles = Array.from(fileInput.files);
+            files = files.concat(newFiles);
+            updateFileList();
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('file-item');
+
+                const fileName = document.createElement('span');
+                fileName.textContent = file.name;
+
+                const textInput = document.createElement('input');
+                textInput.type = 'text';
+                textInput.name = `areaNames[${index}]`;  // Ensure each file has a unique area name
+                textInput.placeholder = 'Enter area name';
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.classList.add('delete-button');
+                deleteButton.addEventListener('click', () => {
+                    deleteFile(index);
+                });
+
+                fileItem.appendChild(fileName);
+                fileItem.appendChild(textInput);
+                fileItem.appendChild(deleteButton);
+
+                fileList.appendChild(fileItem);
+            });
+            updateFileInput();
+        }
+
+        function deleteFile(index) {
+            files.splice(index, 1);
+            updateFileList();
+        }
+
+        function updateFileInput() {
+            const dataTransfer = new DataTransfer();
+            files.forEach(file => dataTransfer.items.add(file));
+            fileInput.files = dataTransfer.files;
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData();
+            files.forEach((file, index) => {
+                formData.append('file', file);
+                // Ensure we always add area name, default to file name if empty
+                const areaName = document.querySelector(`input[name='areaNames[${index}]']`).value.trim() || file.name;
+                formData.append('areaNames[]', areaName);
+            });
+
+            // Debugging: Log FormData contents
+            for (const [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                displayResults(data.results);
+            } catch (error) {
+                console.error('Error uploading files:', error);
+            }
+        });
+
+        function displayResults(results) {
+            resultsContainer.innerHTML = `
+                <h2>Upload Results</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Area</th>
+                            <th>Room Name</th>
+                            <th>Room Size</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${results.map(result =>
+                            result.matched_rooms.map(room => `
+                                <tr>
+                                    <td>${result.filename}</td>
+                                    <td>${result.area}</td>
+                                    <td>${room.room_name}</td>
+                                    <td>${room.room_size}</td>
+                                </tr>
+                            `).join('')
+                        ).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+    </script>
+</body>
+</html>

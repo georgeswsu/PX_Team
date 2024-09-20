@@ -1,0 +1,107 @@
+<html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+
+            .container {
+                background-color: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                padding: 30px;
+                width: 400px;
+                text-align: center;
+            }
+            .footer {
+                margin-top: 20px;
+                font-size: 14px;
+                color: #666;
+                background-color: #f9f9f9;
+                padding: 20px;
+                border-top: 1px solid #ddd;
+                border-radius: 8px;
+                width: 400px;
+                text-align: left;
+            }
+
+            h1 {
+                font-size: 24px;
+                color: #333;
+                margin-bottom: 20px;
+            }
+
+            form {
+                margin-top: 20px;
+            }
+
+            input[type="file"] {
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                width: 100%;
+                margin-bottom: 20px;
+            }
+
+            input[type="submit"] {
+                background-color: #28a745;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: background-color 0.3s ease;
+            }
+
+            input[type="submit"]:hover {
+                background-color: #218838;
+            }
+
+            .footer {
+                margin-top: 20px;
+                font-size: 12px;
+                color: #888;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Upload JSON File</h1>
+            <form method="POST" enctype="multipart/form-data">
+                <input type="file" name="file" required>
+                <input type="submit" value="Upload">
+
+
+            </form>
+
+        </div>
+        <div class="container">
+            <h1>Upload Diagram File</h1>
+                <form method="POST" enctype="multipart/form-data">
+                <input type="file" name="file" required>
+                <input type="text" id="description" name="Description" placeholder="location" required>
+                <input type="submit" value="Upload">
+                </form>
+        </div>
+        <div class="footer">
+            <h2>&copy; 2024 Crennotech</h2>
+            <p><b>/client</b> for all clients</p>
+            <p><b>/client/client_id</b> for specific client</p>
+            <p><i>/location</i> for all locations</p>
+            <p><i>/location/client_id</i> for specific client locations</p>
+            <p><i>/task</i> for all tasks</p>
+            <p><i>/tasks/location_id</i> for specific tasks in a location</p>
+            <p><b><i>/client/1</i> to show client_id = 1</b></p>
+            </div>
+
+
+    </body>
+    </html>

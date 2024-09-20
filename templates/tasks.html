@@ -1,0 +1,59 @@
+<!-- templates/task_details.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Details</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Task Details</h1>
+        <table>
+            <tr>
+                <th>Task ID</th>
+                <th>Description</th>
+                <th>Location ID</th>
+                <th>Monday</th>
+                <th>Tuesday</th>
+                <th>Wednesday</th>
+                <th>Thursday</th>
+                <th>Friday</th>
+                <th>Saturday</th>
+                <th>Sunday</th>
+            </tr>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task['task_id'] }}</td>
+                <td>{{ task['description'] }}</td>
+                <td>{{ task['location_id'] }}</td>
+                <td>{{ task['monday'] }}</td>
+                <td>{{ task['tuesday'] }}</td>
+                <td>{{ task['wednesday'] }}</td>
+                <td>{{ task['thursday'] }}</td>
+                <td>{{ task['friday'] }}</td>
+                <td>{{ task['saturday'] }}</td>
+                <td>{{ task['sunday'] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+</body>
+</html>

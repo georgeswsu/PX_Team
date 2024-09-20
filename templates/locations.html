@@ -1,0 +1,42 @@
+<!-- templates/clients.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>location List</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clients List</h1>
+        <table>
+            <tr>
+                <th>Location ID</th>
+                <th>Location Address</th>
+                <th>Client</th>
+            </tr>
+            {% for location in locations %}
+            <tr>
+                <td>{{ location['location_id'] }}</td>
+                <td>{{ location['location_address'] }}</td>
+                <td>{{ location['client'] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+</body>
+</html>

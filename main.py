@@ -5,6 +5,7 @@ import mysql.connector
 import pandas as pd
 import requests
 import re
+import json
 
 # Configure Azure Custom Vision
 cv_endpoint = "https://pxtest0-prediction.cognitiveservices.azure.com/customvision/v3.0/Prediction"
@@ -170,7 +171,7 @@ def filter_detected_rooms_by_probability(detected_rooms, threshold=0.5):
     return filtered_rooms
 
 # Store results into MySQL
-def store_to_mysql(matched_rooms):
+def store_rooms_to_mysql(matched_rooms):
     connection = mysql.connector.connect(
         host=mysql_host,
         user=mysql_user,
@@ -182,7 +183,7 @@ def store_to_mysql(matched_rooms):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS rooms (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            room_tag VARCHAR(255),
+            area VARCHAR(255),
             room_name VARCHAR(255),
             room_size VARCHAR(255)
         )
@@ -190,7 +191,7 @@ def store_to_mysql(matched_rooms):
 
     for room in matched_rooms:
         cursor.execute("""
-            INSERT INTO rooms (room_tag, room_name, room_size) VALUES (%s, %s, %s)
+            INSERT INTO rooms (area, room_name, room_size) VALUES (%s, %s, %s)
         """, (room["room_tag"], room["room_name"], room["room_size"]))
 
     connection.commit()
@@ -212,6 +213,6 @@ if __name__ == "__main__":
     detected_rooms = filter_detected_rooms_by_probability(detect_rooms(image_path))
     extracted_rooms = analyze_floor_plan(image_path)
     matched_rooms = match_rooms(detected_rooms, extracted_rooms, image_width, image_height)
-    store_to_mysql(matched_rooms)
+    store_rooms_to_mysql(matched_rooms)
     generate_excel(matched_rooms)
     print("Finished!")

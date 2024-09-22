@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,22 +17,22 @@
             height: 100vh;
             flex-direction: column;
         }
+
         .container {
             background-color: #ffffff;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 30px;
-            width: 800px;
+            width: 95%;
+            max-width: 1200px;
             text-align: center;
+            overflow-x: auto;
         }
-        h1 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        form {
+
+        .container h2 {
             margin-top: 20px;
         }
+
         .custom-file-upload {
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -42,18 +43,22 @@
             color: white;
             font-size: 16px;
         }
+
         input[type="file"] {
             display: none;
         }
+
         .file-list {
             margin-top: 20px;
             text-align: left;
         }
+
         .file-item {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
         }
+
         .file-item input[type="text"] {
             margin-left: 10px;
             padding: 5px;
@@ -61,6 +66,7 @@
             border: 1px solid #ccc;
             width: 150px;
         }
+
         .delete-button {
             margin-left: 10px;
             padding: 5px 10px;
@@ -70,51 +76,78 @@
             color: white;
             cursor: pointer;
         }
+
         .delete-button:hover {
             background-color: #c82333;
         }
+
         .result-toggle {
             margin-top: 20px;
             display: flex;
             justify-content: space-around;
         }
+
         .result {
             display: none;
             margin-top: 20px;
             text-align: left;
         }
+
         .result.active {
             display: block;
         }
+
         .results-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            overflow: auto;
         }
-        .results-table th, .results-table td {
+
+        .results-table th,
+        .results-table td {
             border: 1px solid #ccc;
             padding: 10px;
             text-align: left;
         }
+
         .results-table th {
             background-color: #f8f9fa;
         }
+
         .results-container {
             background-color: #f9f9f9;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            max-width: 100%; /* 添加最大宽度 */
-            overflow-x: auto; /* 横向滚动 */
+        }
+
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pagination button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pagination button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-
-        <!-- Unified form for JSON and Floor Plan file uploads -->
+        <h1>Upload JSON and Floor Plan Files</h1>
         <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
-            <!-- JSON file upload section -->
             <h2>Upload JSON Files</h2>
             <label class="custom-file-upload">
                 <input type="file" id="jsonFileInput" name="jsonFiles" multiple>
@@ -122,31 +155,31 @@
             </label>
             <div id="jsonFileList" class="file-list"></div>
 
-            <!-- Floor Plan file upload section -->
-            <h2>Upload Floor Plan Files </h2>
+            <h2>Upload Floor Plan Files</h2>
             <label class="custom-file-upload">
                 <input type="file" id="floorPlanFileInput" name="floorPlanFiles" multiple>
                 Select Floor Plan Files
             </label>
             <div id="floorPlanFileList" class="file-list"></div>
 
-            <!-- Submit button for both file types -->
             <input type="submit" value="Upload">
         </form>
 
-        <!-- Toggle buttons for switching between analysis results -->
-        <div class="result-toggle">
-            <button type="button" id="clientAnalysisButton">Client Analysis</button>
-            <button type="button" id="floorPlanAnalysisButton">Floor Plan Analysis</button>
+        <!-- Pagination buttons for switching between JSON pages -->
+        <div class="pagination">
+            <button id="clientPageButton">Client Data</button>
+            <button id="locationPageButton">Location Data</button>
+            <button id="taskPageButton">Task Data</button>
+            <button id="floorPlanPageButton">Floor Plan Data</button>
         </div>
 
         <!-- Result displays for JSON and Floor Plan analysis -->
-        <div id="clientAnalysisResult" class="result results-container">
-            <!-- JSON analysis results will be displayed here -->
-        </div>
-        <div id="floorPlanAnalysisResult" class="result results-container">
-            <!-- Floor Plan analysis results will be displayed here -->
-        </div>
+        <div id="clientPage" class="result results-container"></div>
+        <div id="locationPage" class="result results-container"></div>
+        <div id="taskPage" class="result results-container"></div>
+        <div id="floorPlanPage" class="result results-container"></div>
+
+        <div id="taskPagination" class="pagination"></div>
     </div>
 
     <script>
@@ -265,36 +298,51 @@
         });
 
         // Handle result display for JSON and Floor Plan analysis
+// Handle result display for JSON and Floor Plan analysis
 function displayResults(data) {
-    const clientResult = document.getElementById('clientAnalysisResult');
-    const floorPlanResult = document.getElementById('floorPlanAnalysisResult');
+    const clientResult = document.getElementById('clientPage');
+    const locationResult = document.getElementById('locationPage');
+    const taskResult = document.getElementById('taskPage');
+    const floorPlanResult = document.getElementById('floorPlanPage');
 
     // Debugging: Check if the data contains the expected structure
     console.log("data Received from backend:", data);
 
-    // Check for jsonResults
+    // Clear previous results
+    clientResult.innerHTML = '';
+    locationResult.innerHTML = '';
+    taskResult.innerHTML = '';
+    floorPlanResult.innerHTML = '';
+
+    // Check for jsonResults (Client, Location, Task)
     if (data.jsonResults && data.jsonResults.length > 0) {
+        const jsonData = data.jsonResults[0];  // Assuming there's only one set of JSON data for simplicity
         clientResult.innerHTML = `
-            <h2>Client Analysis Results</h2>
-            ${data.jsonResults.map(result => `
-                <h3>Client Data</h3>
-                ${result.client_data}
-                <h3>Location Data</h3>
-                ${result.location_data}
-                <h3>Task Data</h3>
-                ${result.task_data}
-            `).join('')}
+            <h2>Client Data</h2>
+            ${jsonData.client_data}
         `;
+        locationResult.innerHTML = `
+            <h2>Location Data</h2>
+            ${jsonData.location_data}
+        `;
+        taskResult.innerHTML = `
+            <h2>Task Data</h2>
+            ${jsonData.task_data}
+        `;
+
         clientResult.classList.add('active');
-        floorPlanResult.classList.remove('active');
+        locationResult.classList.add('active');
+        taskResult.classList.add('active');
     } else {
         clientResult.innerHTML = `<h2>No results found for Client Analysis</h2>`;
+        locationResult.innerHTML = `<h2>No results found for Location Analysis</h2>`;
+        taskResult.innerHTML = `<h2>No results found for Task Analysis</h2>`;
     }
 
     // Check for floorPlanResults
     if (data.floorPlanResults && data.floorPlanResults.length > 0) {
         floorPlanResult.innerHTML = `
-            <h2>Floor Plan Analysis Results</h2>
+            <h2>Floor Plan Data</h2>
             <table class="results-table">
                 <thead>
                     <tr>
@@ -310,23 +358,22 @@ function displayResults(data) {
                             <tr>
                                 <td>${result.filename}</td>
                                 <td>${result.area}</td>
-                                <td>${room.room_name}</td>
-                                <td>${room.room_size}</td>
+                                <td>${room.room_name !== 'N/A' ? room.room_name : 'No Name Detected'}</td>
+                                <td>${room.room_size !== 'N/A' ? room.room_size : 'No Size Detected'}</td>
                             </tr>
                         `).join('')
                     ).join('')}
                 </tbody>
             </table>
         `;
-        if (!data.jsonResults || data.jsonResults.length === 0) {
-            floorPlanResult.classList.add('active');
-            clientResult.classList.remove('active');
-        }
+        floorPlanResult.classList.add('active');
     } else {
         floorPlanResult.innerHTML = `<h2>No results found for Floor Plan Analysis</h2>`;
     }
 }
 
+
     </script>
 </body>
+
 </html>

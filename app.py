@@ -75,7 +75,7 @@ def create_tables(conn):
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS rooms (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            room_tag VARCHAR(255),
+            area VARCHAR(255),
             room_name VARCHAR(255),
             room_size VARCHAR(255)
         )

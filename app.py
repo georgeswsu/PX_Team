@@ -28,11 +28,11 @@ def create_db_connection():
         database=mysql_database
     )
 
-# 创建数据库表
+# creat tables
 def create_tables(conn):
     cursor = conn.cursor()
 
-    # 创建 client 表
+    # creat client table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS client (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -42,7 +42,7 @@ def create_tables(conn):
     ''')
     conn.commit()
 
-    # 创建 location 表
+    # create location table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS location (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -53,7 +53,7 @@ def create_tables(conn):
     ''')
     conn.commit()
 
-    # 创建 task 表
+    # create task table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS task (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -71,7 +71,7 @@ def create_tables(conn):
     ''')
     conn.commit()
 
-    # 创建 rooms 表
+    # create rooms table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS rooms (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -87,7 +87,7 @@ def create_tables(conn):
 def index():
     return render_template('index.html')
 
-# 处理上传的 JSON 和平面图文件的统一路由
+# Route for Upload files
 @app.route('/upload', methods=['POST'])
 def upload_files():
     json_files = request.files.getlist('jsonFiles')
@@ -104,7 +104,7 @@ def upload_files():
 
     conn = create_db_connection()
 
-    # 处理 JSON 文件
+    # Handover json file
     if json_files:
         for file in json_files:
             try:
@@ -113,17 +113,17 @@ def upload_files():
 
                 data_json = get_json(file_path)
 
-                # 解析并插入客户数据
+                # phase and insert client data
                 client_data_frame = parse_client(data_json)
                 insert_clients_into_sql('client', client_data_frame, conn)
                 client_index_map = get_table_index('client', 'id', 'name', conn)
 
-                # 解析并插入位置数据
+                # phase and insert location data
                 location_data_frame = parse_location(data_json, client_index_map)
                 insert_clients_into_sql('location', location_data_frame, conn)
                 location_index_map = get_table_index('location', 'id', 'location', conn)
 
-                # 解析并插入任务数据
+                # phase and insert task data
                 task_data_frame = parse_tasks(data_json, location_index_map)
                 insert_clients_into_sql('task', task_data_frame, conn)
 
@@ -139,7 +139,7 @@ def upload_files():
                     'error': str(e)
                 })
 
-    # 处理平面图文件
+    # Handover floor plan file
     if floor_plan_files:
         for file, area_name in zip(floor_plan_files, area_names):
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
@@ -150,7 +150,7 @@ def upload_files():
             extracted_rooms = analyze_floor_plan(file_path)
             matched_rooms = match_rooms(detected_rooms, extracted_rooms, image_width, image_height)
 
-            # 将匹配的房间信息存储到数据库
+            # phase and insert room data
             for room in matched_rooms:
                 room['room_tag'] = area_name if area_name else file.filename
             store_rooms_to_mysql(matched_rooms)

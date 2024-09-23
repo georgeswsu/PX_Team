@@ -7,8 +7,6 @@ import requests
 import re
 import json
 
-from test13 import clean_data_frame
-
 # Configure Azure Custom Vision
 cv_endpoint = "https://pxtest0-prediction.cognitiveservices.azure.com/customvision/v3.0/Prediction"
 cv_prediction_key = "f313aaf51e244d73a2ca583ca643d7b4"
@@ -22,8 +20,8 @@ form_recognizer_key = "a130c75f646741ba90d5b40a8aa1fa5b"
 # Configure MySQL
 mysql_host = "localhost"
 mysql_user = "root"
-mysql_password = "password"
-mysql_database = "px_test_7"
+mysql_password = "85982480hy"
+mysql_database = "pxtest"
 
 image_path = "data/R.jpg"
 
@@ -200,16 +198,6 @@ def store_rooms_to_mysql(matched_rooms):
     cursor.close()
     connection.close()
 
-# def insert_clients_into_sql(table_name, data_frame, conn):
-#     cursor = conn.cursor()
-#     data_frame = clean_data_frame(data_frame)
-#
-#     placeholders = ', '.join(['%s'] * len(data_frame.columns))
-#     columns = ', '.join(data_frame.columns)
-#
-#     sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
-#     cursor.executemany(sql, data_frame.values.tolist())
-#     conn.commit()
 
 # Generate Excel report
 def generate_excel(matched_rooms):

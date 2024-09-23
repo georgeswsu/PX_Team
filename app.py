@@ -3,15 +3,16 @@ import os
 import mysql.connector
 from main import detect_rooms, analyze_floor_plan, match_rooms, get_image_size, store_rooms_to_mysql, \
     filter_detected_rooms_by_probability
-from test13 import parse_tasks, parse_client, parse_location, insert_clients_into_sql, get_table_index, get_json
+from test15 import parse_tasks, parse_client, parse_location, insert_clients_into_sql, get_table_index, \
+    analyze_pdf_with_azure, get_json_from_azure_result
 
 app = Flask(__name__)
 
 # MySQL configuration
 mysql_host = "localhost"
 mysql_user = "root"
-mysql_password = "password"
-mysql_database = "px_test_7"
+mysql_password = "85982480hy"
+mysql_database = "pxtest"
 
 # Upload folder
 UPLOAD_FOLDER = 'uploads'
@@ -90,12 +91,12 @@ def index():
 # Route for Upload files
 @app.route('/upload', methods=['POST'])
 def upload_files():
-    json_files = request.files.getlist('jsonFiles')
+    scope_files = request.files.getlist('jsonFiles')
     floor_plan_files = request.files.getlist('floorPlanFiles')
     area_names = request.form.getlist('areaNames[]')
 
-    if not json_files and not floor_plan_files:
-        return jsonify({'error': 'Please upload at least one JSON or Floor Plan file'}), 400
+    if not scope_files and not floor_plan_files:
+        return jsonify({'error': 'Please upload at least one Scope of Work File or Floor Plan file'}), 400
 
     results = {
         'jsonResults': [],
@@ -105,13 +106,14 @@ def upload_files():
     conn = create_db_connection()
 
     # Handover json file
-    if json_files:
-        for file in json_files:
+    if scope_files:
+        for file in scope_files:
             try:
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
                 file.save(file_path)
 
-                data_json = get_json(file_path)
+                json_data = analyze_pdf_with_azure(file_path)
+                data_json = get_json_from_azure_result(json_data)
 
                 # phase and insert client data
                 client_data_frame = parse_client(data_json)
@@ -165,26 +167,6 @@ def upload_files():
 
     print('Results being sent to the front-end:', results)
     return jsonify({'results': results})
-
-# Route to fetch and display the content of each table
-@app.route('/table/<table_name>', methods=['GET'])
-def get_table_data(table_name):
-    conn = create_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    # Validate if the table exists
-    if table_name not in ['client', 'location', 'task', 'rooms']:
-        return jsonify({'error': 'Invalid table name'}), 400
-
-    # Fetch data from the specified table
-    cursor.execute(f"SELECT * FROM {table_name}")
-    rows = cursor.fetchall()
-    conn.close()
-
-    return jsonify(rows)
-
-
-
 
 # Run the app
 if __name__ == '__main__':

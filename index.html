@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload JSON and Floor Plan Files</title>
+    <title>Upload Scope and Floor Plan Files</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -146,12 +146,12 @@
 
 <body>
     <div class="container">
-        <h1>Upload JSON and Floor Plan Files</h1>
+
         <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
-            <h2>Upload JSON Files</h2>
+            <h2>Upload Work Scope Files</h2>
             <label class="custom-file-upload">
                 <input type="file" id="jsonFileInput" name="jsonFiles" multiple>
-                Select JSON Files
+                Select Work Scope Files
             </label>
             <div id="jsonFileList" class="file-list"></div>
 
@@ -165,13 +165,6 @@
             <input type="submit" value="Upload">
         </form>
 
-        <!-- Pagination buttons for switching between JSON pages -->
-        <div class="pagination">
-            <button id="clientPageButton">Client Data</button>
-            <button id="locationPageButton">Location Data</button>
-            <button id="taskPageButton">Task Data</button>
-            <button id="floorPlanPageButton">Floor Plan Data</button>
-        </div>
 
         <!-- Result displays for JSON and Floor Plan analysis -->
         <div id="clientPage" class="result results-container"></div>
@@ -180,9 +173,6 @@
         <div id="floorPlanPage" class="result results-container"></div>
 
         <div id="taskPagination" class="pagination"></div>
-
-        <!-- Result displays for JSON and Floor Plan analysis -->
-        <div id="tableData" class="results-container"></div>
     </div>
 
     <script>
@@ -376,63 +366,6 @@ function displayResults(data) {
 }
 
 
-    </script>
-
-
-    <script>
-        // Attach event listeners for the buttons
-        document.getElementById('clientPageButton').addEventListener('click', function() {
-            fetchTableData('client');
-        });
-
-        document.getElementById('locationPageButton').addEventListener('click', function() {
-            fetchTableData('location');
-        });
-
-        document.getElementById('taskPageButton').addEventListener('click', function() {
-            fetchTableData('task');
-        });
-
-        document.getElementById('floorPlanPageButton').addEventListener('click', function() {
-            fetchTableData('rooms'); // Assuming the "floor plan" data is in the 'rooms' table
-        });
-
-        // Function to fetch table data and display it
-        function fetchTableData(tableName) {
-            fetch(`/table/${tableName}`)
-                .then(response => response.json())
-                .then(data => {
-                    const tableDataContainer = document.getElementById('tableData');
-                    if (data.error) {
-                        tableDataContainer.innerHTML = `<p>Error: ${data.error}</p>`;
-                    } else {
-                        let tableHTML = `<h2>${tableName} Data</h2><table class="results-table"><thead><tr>`;
-
-                        // Dynamically create table headers
-                        const headers = Object.keys(data[0]);
-                        headers.forEach(header => {
-                            tableHTML += `<th>${header}</th>`;
-                        });
-                        tableHTML += `</tr></thead><tbody>`;
-
-                        // Add rows
-                        data.forEach(row => {
-                            tableHTML += `<tr>`;
-                            headers.forEach(header => {
-                                tableHTML += `<td>${row[header]}</td>`;
-                            });
-                            tableHTML += `</tr>`;
-                        });
-                        tableHTML += `</tbody></table>`;
-
-                        tableDataContainer.innerHTML = tableHTML;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching table data:', error);
-                    document.getElementById('tableData').innerHTML = `<p>Error fetching table data</p>`;
-                });
-        }
     </script>
 </body>
 

@@ -175,7 +175,7 @@ def upload_file():
                 host="127.0.0.1",
                 user="root",
                 password="password",
-                database="85982480hy"
+                database="px_table_7"
             )
             cursor = conn.cursor()
 

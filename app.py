@@ -10,8 +10,8 @@ app = Flask(__name__)
 # MySQL configuration
 mysql_host = "localhost"
 mysql_user = "root"
-mysql_password = "85982480hy"
-mysql_database = "pxtest"
+mysql_password = "password"
+mysql_database = "px_test_7"
 
 # Upload folder
 UPLOAD_FOLDER = 'uploads'
@@ -165,6 +165,26 @@ def upload_files():
 
     print('Results being sent to the front-end:', results)
     return jsonify({'results': results})
+
+# Route to fetch and display the content of each table
+@app.route('/table/<table_name>', methods=['GET'])
+def get_table_data(table_name):
+    conn = create_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Validate if the table exists
+    if table_name not in ['client', 'location', 'task', 'rooms']:
+        return jsonify({'error': 'Invalid table name'}), 400
+
+    # Fetch data from the specified table
+    cursor.execute(f"SELECT * FROM {table_name}")
+    rows = cursor.fetchall()
+    conn.close()
+
+    return jsonify(rows)
+
+
+
 
 # Run the app
 if __name__ == '__main__':

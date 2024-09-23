@@ -146,7 +146,7 @@
 
 <body>
     <div class="container">
-        <h1>Upload JSON and Floor Plan Files</h1>
+
         <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
             <h2>Upload JSON Files</h2>
             <label class="custom-file-upload">
@@ -165,13 +165,6 @@
             <input type="submit" value="Upload">
         </form>
 
-        <!-- Pagination buttons for switching between JSON pages -->
-        <div class="pagination">
-            <button id="clientPageButton">Client Data</button>
-            <button id="locationPageButton">Location Data</button>
-            <button id="taskPageButton">Task Data</button>
-            <button id="floorPlanPageButton">Floor Plan Data</button>
-        </div>
 
         <!-- Result displays for JSON and Floor Plan analysis -->
         <div id="clientPage" class="result results-container"></div>

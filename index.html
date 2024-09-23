@@ -174,8 +174,210 @@
         </div>
 
         <!-- Result displays for JSON and Floor Plan analysis -->
+        <div id="clientPage" class="result results-container"></div>
+        <div id="locationPage" class="result results-container"></div>
+        <div id="taskPage" class="result results-container"></div>
+        <div id="floorPlanPage" class="result results-container"></div>
+
+        <div id="taskPagination" class="pagination"></div>
+
+        <!-- Result displays for JSON and Floor Plan analysis -->
         <div id="tableData" class="results-container"></div>
     </div>
+
+    <script>
+        // Handle JSON file input
+        const jsonFileInput = document.getElementById('jsonFileInput');
+        const jsonFileList = document.getElementById('jsonFileList');
+        let jsonFiles = [];
+
+        jsonFileInput.addEventListener('change', handleJsonFiles, false);
+
+        function handleJsonFiles() {
+            const newJsonFiles = Array.from(jsonFileInput.files);
+            jsonFiles = jsonFiles.concat(newJsonFiles);
+            updateFileList(jsonFiles, jsonFileList);
+        }
+
+        // Handle Floor Plan file input with area name
+        const floorPlanFileInput = document.getElementById('floorPlanFileInput');
+        const floorPlanFileList = document.getElementById('floorPlanFileList');
+        let floorPlanFiles = [];
+
+        floorPlanFileInput.addEventListener('change', handleFloorPlanFiles, false);
+
+        function handleFloorPlanFiles() {
+            const newFloorPlanFiles = Array.from(floorPlanFileInput.files);
+            floorPlanFiles = floorPlanFiles.concat(newFloorPlanFiles);
+            updateFileListWithArea(floorPlanFiles, floorPlanFileList);
+        }
+
+        // Update file list for JSON and Floor Plan files
+        function updateFileList(files, fileListElement) {
+            fileListElement.innerHTML = '';
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('file-item');
+
+                const fileName = document.createElement('span');
+                fileName.textContent = file.name;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.classList.add('delete-button');
+                deleteButton.addEventListener('click', () => {
+                    files.splice(index, 1);
+                    updateFileList(files, fileListElement);
+                });
+
+                fileItem.appendChild(fileName);
+                fileItem.appendChild(deleteButton);
+                fileListElement.appendChild(fileItem);
+            });
+        }
+
+        // Update file list with area name input for floor plans
+        function updateFileListWithArea(files, fileListElement) {
+            fileListElement.innerHTML = '';
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('file-item');
+
+                const fileName = document.createElement('span');
+                fileName.textContent = file.name;
+
+                const areaInput = document.createElement('input');
+                areaInput.type = 'text';
+                areaInput.name = `areaNames[${index}]`;
+                areaInput.placeholder = 'Enter area name';
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.classList.add('delete-button');
+                deleteButton.addEventListener('click', () => {
+                    files.splice(index, 1);
+                    updateFileListWithArea(files, fileListElement);
+                });
+
+                fileItem.appendChild(fileName);
+                fileItem.appendChild(areaInput);
+                fileItem.appendChild(deleteButton);
+                fileListElement.appendChild(fileItem);
+            });
+        }
+
+        // Unified form submit
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData();
+
+            jsonFiles.forEach(file => formData.append('jsonFiles', file));
+            floorPlanFiles.forEach((file, index) => {
+                formData.append('floorPlanFiles', file);
+                const areaName = document.querySelector(`input[name='areaNames[${index}]']`).value.trim() || file.name;
+                formData.append('areaNames[]', areaName);
+            });
+            // Log the formData content for debugging
+            for (let pair of formData.entries()) {
+            console.log(pair[0], pair[1]);  // Log each key/value pair in FormData
+            }
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('data Received from backend:', data);
+                displayResults(data.results); // Use correct key 'results'
+            } catch (error) {
+                console.error('Error uploading files:', error);
+            }
+        });
+
+        // Handle result display for JSON and Floor Plan analysis
+// Handle result display for JSON and Floor Plan analysis
+function displayResults(data) {
+    const clientResult = document.getElementById('clientPage');
+    const locationResult = document.getElementById('locationPage');
+    const taskResult = document.getElementById('taskPage');
+    const floorPlanResult = document.getElementById('floorPlanPage');
+
+    // Debugging: Check if the data contains the expected structure
+    console.log("data Received from backend:", data);
+
+    // Clear previous results
+    clientResult.innerHTML = '';
+    locationResult.innerHTML = '';
+    taskResult.innerHTML = '';
+    floorPlanResult.innerHTML = '';
+
+    // Check for jsonResults (Client, Location, Task)
+    if (data.jsonResults && data.jsonResults.length > 0) {
+        const jsonData = data.jsonResults[0];  // Assuming there's only one set of JSON data for simplicity
+        clientResult.innerHTML = `
+            <h2>Client Data</h2>
+            ${jsonData.client_data}
+        `;
+        locationResult.innerHTML = `
+            <h2>Location Data</h2>
+            ${jsonData.location_data}
+        `;
+        taskResult.innerHTML = `
+            <h2>Task Data</h2>
+            ${jsonData.task_data}
+        `;
+
+        clientResult.classList.add('active');
+        locationResult.classList.add('active');
+        taskResult.classList.add('active');
+    } else {
+        clientResult.innerHTML = `<h2>No results found for Client Analysis</h2>`;
+        locationResult.innerHTML = `<h2>No results found for Location Analysis</h2>`;
+        taskResult.innerHTML = `<h2>No results found for Task Analysis</h2>`;
+    }
+
+    // Check for floorPlanResults
+    if (data.floorPlanResults && data.floorPlanResults.length > 0) {
+        floorPlanResult.innerHTML = `
+            <h2>Floor Plan Data</h2>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Area</th>
+                        <th>Room Name</th>
+                        <th>Room Size</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.floorPlanResults.map(result =>
+                        result.matched_rooms.map(room => `
+                            <tr>
+                                <td>${result.filename}</td>
+                                <td>${result.area}</td>
+                                <td>${room.room_name !== 'N/A' ? room.room_name : 'No Name Detected'}</td>
+                                <td>${room.room_size !== 'N/A' ? room.room_size : 'No Size Detected'}</td>
+                            </tr>
+                        `).join('')
+                    ).join('')}
+                </tbody>
+            </table>
+        `;
+        floorPlanResult.classList.add('active');
+    } else {
+        floorPlanResult.innerHTML = `<h2>No results found for Floor Plan Analysis</h2>`;
+    }
+}
+
+
+    </script>
+
 
     <script>
         // Attach event listeners for the buttons
